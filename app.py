@@ -1,11 +1,17 @@
 from flask import Flask, render_template, request
 from flask.ext.sqlalchemy import SQLAlchemy
-
-from flask.ext.heroku import Heroku
+import os
 
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/pre-registration'
-heroku = Heroku(app)
+
+
+db_user = os.environ.get('POSTGRES_DB_USER')
+db_psw = os.environ.get('POSTGRES_DB_PSW')
+db_host = os.environ.get('SERVICE_POSTGRES_SERVICE_HOST')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://{0}:{1}@{2}/launchpage'.format(
+    db_user, db_psw, db_host
+)
 db = SQLAlchemy(app)
 
 # Create our database model
@@ -20,10 +26,12 @@ class User(db.Model):
     def __repr__(self):
         return '<E-mail %r>' % self.email
 
+
 # Set "homepage" to index.html
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 # Save e-mail to database and send to success page
 @app.route('/prereg', methods=['POST'])
@@ -39,6 +47,6 @@ def prereg():
             return render_template('success.html')
     return render_template('index.html')
 
+
 if __name__ == '__main__':
-    #app.debug = True
     app.run()
